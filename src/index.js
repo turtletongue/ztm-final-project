@@ -1,13 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import App from './containers/App';
 import reportWebVitals from './reportWebVitals';
+import { combineReducers, createStore } from 'redux';
+import { Provider } from 'react-redux';
+import { setImgURL, setFaceBox } from './reducers';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'tachyons';
+import './index.css'
+
+const rootReducer = combineReducers({ setImgURL, setFaceBox });
+
+const store = createStore(rootReducer);
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+    <Provider store={ store }>
+      <App />
+    </Provider>,
   document.getElementById('root')
 );
 

@@ -8,13 +8,9 @@ import FaceRecognition from '../../components/FaceRecognition/FaceRecognition';
 import Signin from '../../components/Signin/Signin';
 import Register from '../../components/Register/Register';
 import { connect } from 'react-redux';
-import { buttonSubmit, addingFaceBox, userAuthorization, userLogout } from '../../actions';
-import Clarafai from 'clarifai';
+import { buttonSubmit, addingFaceBox, userAuthorization, userLogout, updateUser, incorrectData, userRegistration, leaveRegistration } from '../../actions';
 import { Route, Switch } from 'react-router-dom';
-
-const app = new Clarafai.App({
-  apiKey: '9ec533d3c31a4f7e8c1b089a0b93b8da'
-});
+import { store } from '../../index';
 
 const calculateFaceLocation = (data) => {
   const clarifai_box = data.outputs[0].data.regions[0].region_info.bounding_box;
@@ -33,24 +29,100 @@ const mapStateToProps = (state) => ({
   imgURL: state.setImgURL.imgURL,
   box: state.setFaceBox.box,
   isAuthenticated: state.setAuth.isAuthenticated,
-  login: state.setAuth.login
+  user: state.setAuth.user,
+  isCorrect: state.setAuth.isCorrect,
+  isRegistration: state.register.isRegistration
 });
 
 const mapDiscpatchToProps = (dispatch) => ({
   onButtonSubmit: () => {
     const input = document.querySelector('input');
     const url = input.value;
+    const id = store.getState().setAuth.user.id;
     dispatch(buttonSubmit(url));
-    app.models.predict(Clarafai.FACE_DETECT_MODEL, url)
-      .then(response => dispatch(addingFaceBox(calculateFaceLocation(response))))
-      .catch(error => console.log(error));
+    fetch('https://dry-depths-30112.herokuapp.com/predict', {
+      method: "POST",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ url })
+    })
+      .then(response => response.json())
+      .then(response => {
+        if (response) {
+          fetch('https://dry-depths-30112.herokuapp.com/image', {
+              method: "PUT",
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ id })
+            })
+              .then(res => res.json())
+              .then(user => dispatch(updateUser(user)))
+              .catch(console.log);
+        }
+        dispatch(addingFaceBox(calculateFaceLocation(response)));
+      })
+      .catch(console.log);
   },
   onAuth: () => {
-    const loginInput = document.querySelector('#email-address');
-    const login = loginInput.value;
-    dispatch(userAuthorization(login));
+    const email = document.querySelector('#email-address').value;
+    const password = document.querySelector('#password').value;
+    const payload = {
+      email: email,
+      password: password
+    };
+  
+    (async () => {
+      const response = await fetch('https://dry-depths-30112.herokuapp.com/signin', {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (response.status >= 200 && response.status < 300) {
+        const data = await response.json();
+        dispatch(userAuthorization(data));
+      } else {
+        dispatch(incorrectData());
+      }
+    })();
   },
-  onLogout: () => dispatch(userLogout())
+  onRegister: () => {
+    const name = document.querySelector('#name').value;
+    const email = document.querySelector('#email-address').value;
+    const password = document.querySelector('#password').value;
+    const payload = {
+      name: name,
+      email: email,
+      password: password
+    };
+    (async () => {
+      const response = await fetch('https://dry-depths-30112.herokuapp.com/register', {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (response.status >= 200 && response.status < 300) {
+        const data = await response.json();
+        dispatch(userAuthorization(data));
+      } else {
+        dispatch(incorrectData());
+      }
+    })();
+  },
+  onLogout: () => dispatch(userLogout()),
+  toRegister: () => dispatch(userRegistration()),
+  leaveRegister: () => dispatch(leaveRegistration())
 });
 
 const particlesOptions = {
@@ -65,7 +137,8 @@ const particlesOptions = {
   }
 };
 
-const App = ({ imgURL, box, onButtonSubmit, onAuth, onLogout, isAuthenticated, login }) => {
+const App = ({ imgURL, box, onButtonSubmit, onAuth, onLogout, onRegister, isAuthenticated, user, isCorrect, isRegistration, toRegister, leaveRegister }) => {
+
   return (
       <Switch>
         <Route exact path="/" render={() => {return isAuthenticated ? 
@@ -73,22 +146,21 @@ const App = ({ imgURL, box, onButtonSubmit, onAuth, onLogout, isAuthenticated, l
           <Particles className='particles' params={particlesOptions} />
           <Navigation onLogout={onLogout} isAuthenticated={isAuthenticated} />
           <Logo />
-          <Rank login={login} />
+          <Rank user={user} />
           <ImageLinkForm onButtonSubmit={onButtonSubmit} />
           <FaceRecognition imgURL={imgURL} box={box} />
         </div> : 
-        <div>
-          <Particles className='particles' params={particlesOptions} />
-          <Navigation onLogout={onLogout} isAuthenticated={isAuthenticated} />
-          <Signin onAuth={onAuth} />
-        </div>}} />
-        <Route path="/register">
+          isRegistration ? 
           <div>
             <Particles className='particles' params={particlesOptions} />
-            <Navigation onLogout={onLogout} isAuthenticated={isAuthenticated} />
-            <Register onAuth={onAuth} />
-          </div>
-        </Route>
+            <Navigation onLogout={onLogout} isAuthenticated={isAuthenticated}  toRegister={toRegister} leaveRegister={leaveRegister} />
+            <Register onRegister={onRegister} isCorrect={isCorrect} />
+          </div> : 
+          <div>
+            <Particles className='particles' params={particlesOptions} />
+            <Navigation onLogout={onLogout} isAuthenticated={isAuthenticated}  toRegister={toRegister} leaveRegister={leaveRegister} />
+            <Signin onAuth={onAuth} isCorrect={isCorrect} />
+          </div>}} />
       </Switch>
   );
 }

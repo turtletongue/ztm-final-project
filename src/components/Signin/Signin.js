@@ -1,10 +1,11 @@
-const Signin = ({ onAuth }) => {
+const Signin = ({ onAuth, isCorrect }) => {
     return (
         <article className="br3 shadow-5 ba b--black-10 mv4 w-100 w-50-m w-25-l mw6 center center-center">
             <main className="pa4 black-80 center">
-                <form className="measure">
-                    <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
+                <div className="measure">
+                    <fieldset id="sign_in" className="ba b--transparent ph0 mh0">
                         <legend className="f2 fw6 ph0 mh0 tc">Sign In</legend>
+                        <span className="incorrect red">{!isCorrect ? 'Incorrect email or password.' : ''}</span>
                         <div className="mt3">
                             <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
                             <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="email" name="email-address"  id="email-address" />
@@ -16,9 +17,9 @@ const Signin = ({ onAuth }) => {
                     </fieldset>
 
                     <div className="tc">
-                        <input className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib" type="submit" value="Sign in" onClick={onAuth} />
+                        <button className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib" onClick={onAuth} >Sign In</button>
                     </div>
-                </form>
+                </div>
             </main>
         </article>
     );

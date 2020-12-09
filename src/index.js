@@ -4,15 +4,15 @@ import reportWebVitals from './reportWebVitals';
 import App from './containers/App/App';
 import { combineReducers, createStore } from 'redux';
 import { Provider } from 'react-redux';
-import { setImgURL, setFaceBox, setAuth } from './reducers';
+import { setImgURL, setFaceBox, setAuth, register } from './reducers';
 import { BrowserRouter } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'tachyons';
 import './index.css'
 
-const rootReducer = combineReducers({ setImgURL, setFaceBox, setAuth });
+const rootReducer = combineReducers({ setImgURL, setFaceBox, setAuth, register });
 
-const store = createStore(rootReducer);
+export const store = createStore(rootReducer);
 
 ReactDOM.render(
     <BrowserRouter>

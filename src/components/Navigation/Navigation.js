@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
-
-const Navigation = ({ onLogout, isAuthenticated }) => {
+const Navigation = ({ onLogout, isAuthenticated, toRegister, leaveRegister }) => {
     if (isAuthenticated) {
         return (
             <nav> 
@@ -10,12 +8,8 @@ const Navigation = ({ onLogout, isAuthenticated }) => {
     } else {
         return (
             <nav className="flex justify-end"> 
-                <Link to="/register">
-                    <p className='f3 link dim black underline pa3 pointer'>Register</p>
-                </Link>
-                <Link to="/">
-                    <p className='f3 link dim black underline pa3 pointer'>Sign In</p>
-                </Link>
+                <p className='f3 link dim black underline pa3 pointer' onClick={toRegister}>Register</p>
+                <p className='f3 link dim black underline pa3 pointer' onClick={leaveRegister}>Sign In</p>
             </nav>
         );
     }
